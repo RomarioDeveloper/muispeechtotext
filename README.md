@@ -1,101 +1,57 @@
-# 🎙️ Text to Speech App
+# AI Speech Tools
 
-A modern, beautiful text-to-speech web application built with React, TypeScript, Tailwind CSS, and shadcn/ui.
+A professional-grade web application offering Text-to-Speech (TTS) and Speech-to-Text (STT) capabilities. Built with React, TypeScript, and the Web Speech API, featuring a modern user interface designed with shadcn/ui.
 
-## ✨ Features
+## Overview
 
-- 🎨 **Modern UI/UX** - Clean, gradient-based design with smooth animations
-- 🔊 **Text-to-Speech** - Convert any text to natural-sounding speech
-- ⚡ **Speed Control** - Adjust speech rate from 0.5x to 2x
-- 🔈 **Volume Control** - Fine-tune audio volume
-- ⏯️ **Playback Controls** - Play, pause, and stop functionality
-- 📱 **Responsive Design** - Works seamlessly on all devices
-- 🎯 **Real-time Status** - Visual indicators for playback state
+This application provides a unified interface for voice interactions, leveraging browser-native APIs to deliver high-performance speech synthesis and recognition without external dependencies.
 
-## 🚀 Getting Started
+### Key Features
+
+*   **Text to Speech Engine**: Converts written text into spoken audio with adjustable playback speed and volume. Supports file upload for reading text documents.
+*   **Speech Transcription**: Real-time voice-to-text transcription.
+*   **Modern Interface**: Clean, accessible UI components built with Radix UI and Tailwind CSS.
+*   **Responsive Design**: Optimized for desktop and mobile environments.
+
+## Tech Stack
+
+*   **Frontend**: React 19, TypeScript
+*   **Styling**: Tailwind CSS, shadcn/ui
+*   **Build Tool**: Vite
+*   **Icons**: Lucide React
+*   **API**: Web Speech API (SpeechSynthesis & SpeechRecognition)
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm or yarn
+*   Node.js (v18+)
+*   npm or yarn
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone <your-repo-url>
-cd muispeechtotext
-```
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+## Browser Compatibility
 
-## 🛠️ Built With
+This application relies on the Web Speech API. For optimal performance, use:
+*   Google Chrome
+*   Microsoft Edge
+*   Safari
 
-- **React 19** - UI library
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - Beautiful, accessible components
-- **Vite** - Fast build tool
-- **Lucide React** - Modern icon library
-- **Web Speech API** - Browser-native text-to-speech
-
-## 📦 Project Structure
-
-```
-src/
-├── components/
-│   ├── ui/              # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   └── slider.tsx
-│   └── TextToSpeech.tsx # Main TTS component
-├── lib/
-│   └── utils.ts         # Utility functions
-├── App.tsx              # Main app component
-├── main.tsx             # Entry point
-└── index.css            # Global styles
-```
-
-## 🎨 Design Features
-
-- **Gradient Backgrounds** - Beautiful color transitions
-- **Glassmorphism** - Frosted glass effect on cards
-- **Smooth Animations** - Hover effects and transitions
-- **Inter Font** - Modern, clean typography
-- **Responsive Layout** - Mobile-first design approach
-
-## 📝 Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## 🌐 Browser Support
-
-This app uses the Web Speech API, which is supported in:
-- Chrome/Edge (full support)
-- Safari (full support)
-- Firefox (limited support)
-
-## 📄 License
+## License
 
 MIT
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
----
-
-Made with ❤️ using React and Tailwind CSS

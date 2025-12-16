@@ -14,7 +14,7 @@ export function useSpeechToText() {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'en-US'; // Default to English, can be made dynamic
+      recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event: any) => {
         let currentTranscript = '';
@@ -78,4 +78,3 @@ export function useSpeechToText() {
     resetTranscript
   };
 }
-
