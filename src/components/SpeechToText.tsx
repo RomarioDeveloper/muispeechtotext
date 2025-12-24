@@ -1,16 +1,26 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useSpeechToText } from '@/hooks/use-speech-to-text';
-import { Mic, MicOff, Copy, Trash2, Paperclip, Upload, AudioLines } from 'lucide-react';
+import { Mic, MicOff, Copy, Trash2, Paperclip, Upload, AudioLines, Radio } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface ExternalSpeechData {
+  dateTimeStart: string;
+  dateTimeEnd: string;
+  text: string;
+}
 
 export default function SpeechToText() {
   const { isListening, transcript, startListening, stopListening, resetTranscript } = useSpeechToText();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const [isExternalMode, setIsExternalMode] = useState(false);
+  const [externalData, setExternalData] = useState<ExternalSpeechData[]>([]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -19,10 +29,48 @@ export default function SpeechToText() {
     }
   }, [transcript]);
 
+  useEffect(() => {
+    if (isExternalMode && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [externalData, isExternalMode]);
+
+  useEffect(() => {
+    if (import.meta.hot) {
+      import.meta.hot.on('custom:speech-data', (data: ExternalSpeechData) => {
+        setExternalData(prev => [...prev, data]);
+        toast.success('New speech data received');
+      });
+    }
+    
+    return () => {
+      if (import.meta.hot) {
+        // cleanup if needed, though hot.off isn't always available or necessary for this usage
+      }
+    };
+  }, []);
+
   const handleCopy = () => {
+    if (isExternalMode) {
+       const textToCopy = externalData.map(d => `${d.dateTimeStart} | ${d.dateTimeEnd}\n${d.text}`).join('\n\n');
+       if (!textToCopy) return;
+       navigator.clipboard.writeText(textToCopy);
+       toast.success('All external speech data copied');
+       return;
+    }
+
     if (!transcript) return;
     navigator.clipboard.writeText(transcript);
     toast.success('Text copied to clipboard');
+  };
+  
+  const handleClear = () => {
+    if (isExternalMode) {
+      setExternalData([]);
+      toast.success('External data cleared');
+    } else {
+      resetTranscript();
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,7 +112,7 @@ export default function SpeechToText() {
             variant="ghost" 
             size="icon" 
             onClick={handleCopy}
-            disabled={!transcript}
+            disabled={isExternalMode ? externalData.length === 0 : !transcript}
             className="h-8 w-8 text-muted-foreground hover:text-foreground"
           >
             <Copy className="w-4 h-4" />
@@ -73,8 +121,8 @@ export default function SpeechToText() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={resetTranscript}
-            disabled={!transcript}
+            onClick={handleClear}
+            disabled={isExternalMode ? externalData.length === 0 : !transcript}
             className="h-8 w-8 text-muted-foreground hover:text-destructive"
           >
             <Trash2 className="w-4 h-4" />
@@ -83,7 +131,37 @@ export default function SpeechToText() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
-        {!transcript && !isListening ? (
+        {isExternalMode ? (
+          externalData.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-4 p-8 text-muted-foreground">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-2">
+                <Radio className="w-8 h-8 opacity-50" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold text-foreground">External Source Mode</h3>
+                <p className="text-sm max-w-xs mx-auto">
+                  Waiting for data from external applications or REST API...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+               {externalData.map((data, i) => (
+                 <Card key={i} className="p-4 border-none shadow-sm bg-muted/30">
+                   <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground border-b border-border/50 pb-2 mb-3">
+                      <span className="font-mono">{data.dateTimeStart}</span>
+                      <span className="text-muted-foreground/40">|</span>
+                      <span className="font-mono">{data.dateTimeEnd}</span>
+                   </div>
+                   <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                     {data.text}
+                   </p>
+                 </Card>
+               ))}
+               <div ref={messagesEndRef} /> 
+            </div>
+          )
+        ) : !transcript && !isListening ? (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 p-8 text-muted-foreground">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-2">
               <Upload className="w-8 h-8 opacity-50" />
@@ -127,41 +205,63 @@ export default function SpeechToText() {
             accept="audio/*"
             className="hidden"
           />
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 shrink-0 rounded-xl text-muted-foreground hover:text-foreground"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isListening}
-          >
-            {isListening ? (
-               <MicOff className="w-5 h-5 opacity-50" /> 
-            ) : (
-               <Paperclip className="w-5 h-5" />
-            )}
-          </Button>
 
-          <Textarea
-            ref={textareaRef}
-            value={transcript}
-            readOnly
-            placeholder={isListening ? "Listening to your voice..." : "Transcription will appear here..."}
-            className="min-h-[44px] max-h-[200px] w-full resize-none border-none bg-transparent focus-visible:ring-0 px-2 py-3 text-base shadow-none"
-            rows={1}
-          />
+          {isExternalMode ? (
+             <div className="flex-1 flex items-center justify-center py-2 text-sm text-muted-foreground gap-2 h-[44px]">
+               <Radio className="w-4 h-4 animate-pulse text-primary" />
+               Receiving data from external sources...
+             </div>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-xl text-muted-foreground hover:text-foreground"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isListening}
+              >
+                {isListening ? (
+                   <MicOff className="w-5 h-5 opacity-50" /> 
+                ) : (
+                   <Paperclip className="w-5 h-5" />
+                )}
+              </Button>
+
+              <Textarea
+                ref={textareaRef}
+                value={transcript}
+                readOnly
+                placeholder={isListening ? "Listening to your voice..." : "Transcription will appear here..."}
+                className="min-h-[44px] max-h-[200px] w-full resize-none border-none bg-transparent focus-visible:ring-0 px-2 py-3 text-base shadow-none"
+                rows={1}
+              />
+
+              <Button
+                size="icon"
+                variant={isListening ? "destructive" : "default"}
+                className={`h-10 w-10 shrink-0 rounded-xl transition-all ${isListening ? 'animate-pulse' : ''}`}
+                onClick={isListening ? stopListening : startListening}
+              >
+                {isListening ? (
+                  <MicOff className="w-5 h-5" />
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
+              </Button>
+            </>
+          )}
 
           <Button
             size="icon"
-            variant={isListening ? "destructive" : "default"}
-            className={`h-10 w-10 shrink-0 rounded-xl transition-all ${isListening ? 'animate-pulse' : ''}`}
-            onClick={isListening ? stopListening : startListening}
+            variant={isExternalMode ? "default" : "ghost"}
+            className={`h-10 w-10 shrink-0 rounded-xl transition-all ${isExternalMode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            onClick={() => {
+                setIsExternalMode(!isExternalMode);
+                if (isListening) stopListening();
+            }}
+            title="External Data Mode"
           >
-            {isListening ? (
-              <MicOff className="w-5 h-5" />
-            ) : (
-              <Mic className="w-5 h-5" />
-            )}
+            <Radio className="w-5 h-5" />
           </Button>
         </div>
       </div>
