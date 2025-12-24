@@ -36,16 +36,18 @@ export default function SpeechToText() {
   }, [externalData, isExternalMode]);
 
   useEffect(() => {
+    const handleSpeechData = (data: ExternalSpeechData) => {
+      setExternalData(prev => [...prev, data]);
+      toast.success('New speech data received');
+    };
+
     if (import.meta.hot) {
-      import.meta.hot.on('custom:speech-data', (data: ExternalSpeechData) => {
-        setExternalData(prev => [...prev, data]);
-        toast.success('New speech data received');
-      });
+      import.meta.hot.on('custom:speech-data', handleSpeechData);
     }
     
     return () => {
       if (import.meta.hot) {
-        // cleanup if needed, though hot.off isn't always available or necessary for this usage
+        import.meta.hot.off('custom:speech-data', handleSpeechData);
       }
     };
   }, []);
